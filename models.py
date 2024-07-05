@@ -299,7 +299,8 @@ class WSN:
                     sign=self.authorization_ticket.sign,
                     cuitRepresentada=int(self.authorization_ticket.number_cuit),
                     idPersona=persona_ids_long
-                )
+                )['persona']
+
             else:  # method_name == "getPersona"
                 response = []
                 for persona_id in persona_ids:
@@ -308,7 +309,7 @@ class WSN:
                         sign=self.authorization_ticket.sign,
                         cuitRepresentada=int(self.authorization_ticket.number_cuit),
                         idPersona=int(persona_id)
-                    )
+                    )['persona']
                     response.append(single_response)
             return response
         except Exception as e:
@@ -321,34 +322,4 @@ class WSN:
         :return: The WSN URL.
         """
         urls = self.service.get_urls(self.wsaa_client.is_production)
-        return urls["wsdl_url"]
-
-if __name__ == "__main__":
-    
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    cert_dir = os.path.join(base_dir, 'certificates')
-    certs_dir = os.path.join(cert_dir, 'certs')
-    private_dir = os.path.join(cert_dir, 'private')
-    tickets_dir = os.path.join(cert_dir, 'tickets')
-    os.makedirs(tickets_dir, exist_ok=True)
-
-    cert_file_path = os.path.join(certs_dir, 'cert.pem')
-    key_file_path = os.path.join(private_dir, 'key.pem')
-
-    # Example CUITs
-    cuits = ['nro_cuit_1', 'nro_cuit_2', 'nro_cuit_3']
-
-    # Initialize WSN for 'ws_sr_constancia_inscripcion' service
-    wsn = WSN(WSNService.WS_SR_CONSTANCIA_INSCRIPCION, cert_file_path, key_file_path)
-    
-    # Obtain Authorization Ticket
-    wsn.obtain_authorization_ticket()
-
-    # Send dummy request to check service status
-    service_status = wsn.request_afip_dummy()
-    print(f"Service status: {'OK' if service_status else 'Not OK'}")
-
-    # Example: Request persona list
-    persona_list_response = wsn.request_persona_list(cuits)
-    print(f"Persona list response: {persona_list_response}")
-    
+        return urls["wsdl_url"]    
