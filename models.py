@@ -277,17 +277,15 @@ class WSN:
         Requests a list of personas from the AFIP service.
 
         Args:
-            persona_ids (list): A list of persona IDs.
+            persona_ids (list): A list of persona IDs to retrieve.
 
         Returns:
-            list or None: A list of serialized personas, where each persona is a dictionary
-            containing the persona ID as the key and the serialized persona object as the value.
-            Returns None if no personas are found.
+            list: A list of dictionaries, where each dictionary contains the persona ID as the key and the serialized persona object as the value.
 
         Raises:
             RuntimeError: If an error occurs when calling the AFIP service.
         """
-
+        # Check if the authorization ticket is valid or obtain a new one
         if not self.authorization_ticket or not self.authorization_ticket.is_valid():
             self.obtain_authorization_ticket()
 
@@ -322,7 +320,7 @@ class WSN:
         except Exception as e:
             raise RuntimeError(f"Error when calling AFIP service: {str(e)}")
         finally:
-            return personas_list if len(personas_list) > 0 else None
+            return personas_list
 
     def get_wsn_url(self):
         """
