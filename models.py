@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.serialization import pkcs7
 import xmltodict
 import zeep
+from zeep.helpers import serialize_object
 
 class TicketAutorizacion:
     def __init__(self, response_dict):
@@ -276,14 +277,17 @@ class WSN:
         Requests a list of personas from the AFIP service.
 
         Args:
-            persona_ids (list): A list of persona IDs to retrieve.
+            persona_ids (list): A list of persona IDs.
 
         Returns:
-            list: A list of persona responses.
+            list or None: A list of serialized personas, where each persona is a dictionary
+            containing the persona ID as the key and the serialized persona object as the value.
+            Returns None if no personas are found.
 
         Raises:
-            RuntimeError: If there is an error when calling the AFIP service.
+            RuntimeError: If an error occurs when calling the AFIP service.
         """
+
         if not self.authorization_ticket or not self.authorization_ticket.is_valid():
             self.obtain_authorization_ticket()
 
@@ -291,6 +295,7 @@ class WSN:
         client = zeep.Client(wsdl=wsdl_url)
         method_name = self.service.get_method_name()
 
+        personas_list = []
         try:
             if method_name == "getPersonaList_v2":
                 persona_ids_long = [int(persona_id) for persona_id in persona_ids]
@@ -299,21 +304,25 @@ class WSN:
                     sign=self.authorization_ticket.sign,
                     cuitRepresentada=int(self.authorization_ticket.number_cuit),
                     idPersona=persona_ids_long
-                )['persona']
-
+                )
+                # Asumimos que 'response['persona']' es una lista de personas en el mismo orden que 'persona_ids'
+                for i, persona in enumerate(response['persona']):
+                    serialized_persona = serialize_object(persona)
+                    personas_list.append({persona_ids[i]: serialized_persona})
             else:  # method_name == "getPersona"
-                response = []
-                for persona_id in persona_ids:
+                for i, persona_id in enumerate(persona_ids):
                     single_response = client.service.getPersona(
                         token=self.authorization_ticket.token,
                         sign=self.authorization_ticket.sign,
                         cuitRepresentada=int(self.authorization_ticket.number_cuit),
                         idPersona=int(persona_id)
-                    )['persona']
-                    response.append(single_response)
-            return response
+                    )
+                    serialized_persona = serialize_object(single_response['persona'])
+                    personas_list.append({persona_id: serialized_persona})
         except Exception as e:
             raise RuntimeError(f"Error when calling AFIP service: {str(e)}")
+        finally:
+            return personas_list if len(personas_list) > 0 else None
 
     def get_wsn_url(self):
         """
