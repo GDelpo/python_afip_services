@@ -6,3 +6,6 @@ main.py
 test.py
 monotributo_checker.py
 *.json
+*.xlsx
+presentacion_afip.py
+sql_formater.py

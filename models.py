@@ -309,14 +309,17 @@ class WSN:
                     personas_list.append({persona_ids[i]: serialized_persona})
             else:  # method_name == "getPersona"
                 for i, persona_id in enumerate(persona_ids):
-                    single_response = client.service.getPersona(
-                        token=self.authorization_ticket.token,
-                        sign=self.authorization_ticket.sign,
-                        cuitRepresentada=int(self.authorization_ticket.number_cuit),
-                        idPersona=int(persona_id)
-                    )
-                    serialized_persona = serialize_object(single_response['persona'])
-                    personas_list.append({persona_id: serialized_persona})
+                    try:
+                        single_response = client.service.getPersona(
+                            token=self.authorization_ticket.token,
+                            sign=self.authorization_ticket.sign,
+                            cuitRepresentada=int(self.authorization_ticket.number_cuit),
+                            idPersona=int(persona_id)
+                        )
+                        serialized_persona = serialize_object(single_response['persona'])
+                        personas_list.append({persona_id: serialized_persona})
+                    except Exception as e:
+                        personas_list.append({persona_id: e})
         except Exception as e:
             raise RuntimeError(f"Error when calling AFIP service: {str(e)}")
         finally:
