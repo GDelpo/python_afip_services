@@ -9,3 +9,4 @@ monotributo_checker.py
 *.xlsx
 presentacion_afip.py
 sql_formater.py
+checker_file.py
